@@ -18,7 +18,7 @@ namespace StudentManagementSystem.Controllers
         {
             _context = context;
         }
-        public ActionResult Index(int pg=1)
+        public ActionResult Index(int pg = 1)
         {
             const int pageSize = 10;
             if (pg < 1)
@@ -38,7 +38,36 @@ namespace StudentManagementSystem.Controllers
         // GET: StudentController/Details/5
         public ActionResult Details(int id)
         {
+            ViewBag.Context = _context;
             Student student = _context.Students.Where(s => s.StudentId == id).FirstOrDefault();
+            _context.Entry(student).Collection(c => c.StudentCourses).Query().Where(student => student.StudentId == id).Load();
+            //var studentCourse = from s in _context.Students
+            //                    join sc in _context.StudentCourses on s.StudentId equals sc.StudentId
+            //                    join c in _context.Courses on sc.CourseId equals c.CourseId
+            //                    where s.StudentId == id
+            //                    select new StudentCourseView
+            //                    {
+            //                        StudentId = s.StudentId,
+            //                        CourseId = c.CourseId,
+            //                        StudentName = s.Name,
+            //                        Contact = s.Contact,
+            //                        DateOfBirth = s.DateOfBirth,
+            //                        CourseName = c.
+
+
+            //                    }
+            // Get the course where currently DepartmentID = 2.
+            ////Course course = context.Courses.First(c => c.DepartmentID == 2);
+            //Student student = _context.Students.First(s => s.StudentId == id);
+
+            //// Use DepartmentID foreign key property
+            //// to change the association.
+            //course.DepartmentID = 3;
+            //var s1 = student.StudentCourses.ToList();
+
+            //// Load the related Department where DepartmentID = 3
+            //context.Entry(course).Reference(c => c.Department).Load();
+
             return View(student);
         }
 

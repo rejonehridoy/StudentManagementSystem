@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Details";
+    var context = ViewBag.Context;
 }
 
 <h1>Details</h1>
@@ -10,32 +11,109 @@
     <h4>Student</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.DateOfBirth)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.DateOfBirth)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Address)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Address)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Contact)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Contact)
         </dd>
     </dl>
 </div>
+@*<p>Number of Courses Allocated: @Model.StudentCourses.ToList().Count()</p>
+
+    @foreach (var s in Model.StudentCourses.ToList())
+    {
+        var course = context.Courses.Find(s.CourseId);
+        <p>Course Name: @course.Name and Credit: @course.Credit</p>
+
+    }*@
+
+<div class="container p-3">
+    <div class="row">
+        <div class="col-6">
+            <h4 class="text-primary">Allocated Course List</h4>
+        </div>
+        <div class="col-6 text-right">
+            <a asp-controller="Student" asp-action="AddCourse" asp-route-Id="@Model.StudentId" class="btn btn-primary">
+                 &nbsp; Add New Course
+            </a>
+        </div>
+
+    </div>
+
+    <br /> <br />
+
+    @if (Model.StudentCourses.ToList().Count() > 0)
+    {
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>
+                        Course Name
+                    </th>
+                    <th>
+                        Credit
+                    </th>
+                    <th>
+
+                    </th>
+                </tr>
+            </thead>
+
+
+            <tbody>
+                @foreach (var s in Model.StudentCourses.ToList())
+                {
+                    var course = context.Courses.Find(s.CourseId);
+                    <tr>
+                        <td width="50%">
+                            @course.Name
+                        </td>
+                        <td width="30%">
+                            @course.Credit
+                        </td>
+                        <td class="text-center">
+                            <div class="w-75 btn-group" role="group">
+                                @*<a asp-controller="Category" asp-action="Edit" asp-route-Id="@s.Id" class="btn btn-primary btn-sm mx-2">
+                                     Edit
+                                </a>*@
+                                <a asp-controller="Student" asp-action="DeleteCourse" asp-route-Id="@s.Id" class="btn btn-danger btn-sm mx-2">
+                                     Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+
+
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No Course Allocated for this Student</p>
+    }
+</div>
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model.StudentId">Edit</a> |
     <a asp-action="Index">Back to List</a>
