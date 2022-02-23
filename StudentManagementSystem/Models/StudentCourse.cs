@@ -23,17 +23,4 @@ namespace StudentManagementSystem.Models
         [InverseProperty("StudentCourses")]
         public virtual Student Student { get; set; }
     }
-
-    public class StudentCourseView
-    {
-        public int StudentId { get; set; }
-        public int CourseId { get; set; }
-        public string StudentName { get; set; }
-        public DateTime DateOfBirth { get; set; }
-        public string Address { get; set; }
-        public string Contact { get; set; }
-        public string CourseName { get; set; }
-        public string Credit { get; set; }
-
-    }
 }

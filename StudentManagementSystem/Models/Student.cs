@@ -24,6 +24,7 @@ namespace StudentManagementSystem.Models
         public string Name { get; set; }
         [Column(TypeName = "date")]
         [DisplayName("Date of Birth")]
+        [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; }
         [StringLength(50)]
         public string Address { get; set; }

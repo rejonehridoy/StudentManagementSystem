@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Details";
+    var context = ViewBag.Context;
 }
 
 <h1>Details</h1>
@@ -35,6 +36,71 @@
             @Html.DisplayFor(model => model.Salary)
         </dd>
     </dl>
+</div>
+
+<div class="container p-3">
+    <div class="row">
+        <div class="col-6">
+            <h4 class="text-primary">Allocated Course List</h4>
+        </div>
+        <div class="col-6 text-right">
+            <a asp-controller="Teacher" asp-action="AddCourse" asp-route-Id="@Model.TeacherId" class="btn btn-primary">
+                &nbsp; Add New Course
+            </a>
+        </div>
+
+    </div>
+
+    <br /> <br />
+
+    @if (Model.CourseTeachers.ToList().Count() > 0)
+    {
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>
+                        Course Name
+                    </th>
+                    <th>
+                        Credit
+                    </th>
+                    <th>
+
+                    </th>
+                </tr>
+            </thead>
+
+
+            <tbody>
+                @foreach (var s in Model.CourseTeachers.ToList())
+                {
+                    var course = context.Courses.Find(s.CourseId);
+                    <tr>
+                        <td width="50%">
+                            @course.Name
+                        </td>
+                        <td width="30%">
+                            @course.Credit
+                        </td>
+                        <td class="text-center">
+                            <div class="w-75 btn-group" role="group">
+                                <a asp-controller="Teacher" asp-action="DeleteCourse" asp-route-Id="@s.Id" class="btn btn-danger btn-sm mx-2">
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+
+
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No Course Allocated for this Teacher</p>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.TeacherId">Edit</a> |

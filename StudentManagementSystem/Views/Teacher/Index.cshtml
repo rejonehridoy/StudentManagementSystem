@@ -2,6 +2,14 @@
 
 @{
     ViewData["Title"] = "Index";
+    Pager pager = new Pager();
+    int pageNo = 0;
+
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
 }
 
 <h1>Index</h1>
@@ -9,7 +17,7 @@
 <p>
     <a asp-action="Create" class="btn btn-sm btn-success ml-1">Create New</a>
 </p>
-<table class="table">
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
             <th>
@@ -53,3 +61,4 @@
 }
     </tbody>
 </table>
+<partial name="_Pager" model="@pager" />

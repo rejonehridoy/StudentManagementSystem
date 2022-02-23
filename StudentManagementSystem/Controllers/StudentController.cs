@@ -32,6 +32,7 @@ namespace StudentManagementSystem.Controllers
 
             List<Student> students = _context.Students.Skip(recSkip).Take(pager.PageSize).ToList();
             this.ViewBag.Pager = pager;
+            this.ViewBag.Controller = "Student";
             return View(students);
         }
 
@@ -41,32 +42,6 @@ namespace StudentManagementSystem.Controllers
             ViewBag.Context = _context;
             Student student = _context.Students.Where(s => s.StudentId == id).FirstOrDefault();
             _context.Entry(student).Collection(c => c.StudentCourses).Query().Where(student => student.StudentId == id).Load();
-            //var studentCourse = from s in _context.Students
-            //                    join sc in _context.StudentCourses on s.StudentId equals sc.StudentId
-            //                    join c in _context.Courses on sc.CourseId equals c.CourseId
-            //                    where s.StudentId == id
-            //                    select new StudentCourseView
-            //                    {
-            //                        StudentId = s.StudentId,
-            //                        CourseId = c.CourseId,
-            //                        StudentName = s.Name,
-            //                        Contact = s.Contact,
-            //                        DateOfBirth = s.DateOfBirth,
-            //                        CourseName = c.
-
-
-            //                    }
-            // Get the course where currently DepartmentID = 2.
-            ////Course course = context.Courses.First(c => c.DepartmentID == 2);
-            //Student student = _context.Students.First(s => s.StudentId == id);
-
-            //// Use DepartmentID foreign key property
-            //// to change the association.
-            //course.DepartmentID = 3;
-            //var s1 = student.StudentCourses.ToList();
-
-            //// Load the related Department where DepartmentID = 3
-            //context.Entry(course).Reference(c => c.Department).Load();
 
             return View(student);
         }
@@ -84,7 +59,6 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                //int studentId = _context.Students.Max(s => s.StudentId);
                 Debug.WriteLine("New added Studentid: " + student.StudentId);
                 _context.Students.Add(student);
                 _context.SaveChanges();
@@ -136,15 +110,85 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                _context.Attach(student);
-                _context.Entry(student).State = EntityState.Deleted;
+                // Getting all data from StudentCourses table to remove for that specific student
+                int studentId = student.StudentId;
+                var studentcourses = from sc in _context.StudentCourses
+                                     where sc.StudentId == studentId
+                                     select sc;
+
+                // Removing all courses for that student
+                foreach (var sc in studentcourses)
+                {
+                    _context.Entry(sc).State = EntityState.Deleted;
+                }
+                _context.SaveChanges();
+
+
+                //finallly removing student details from Student table
+                _context.Students.Remove(student);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
+
             }
             catch
             {
                 return View();
             }
+            
+        }
+
+        [HttpGet]
+        public ActionResult AddCourse(int id)
+        {
+            List<Course> Assignedcourses = (from c in _context.Courses
+                                    join sc in _context.StudentCourses on c.CourseId equals sc.CourseId
+                                    join s in _context.Students on sc.StudentId equals s.StudentId
+                                    where sc.StudentId == id
+                                    select c).ToList();
+
+            List<Course> Allcourses = (from c in _context.Courses select c).ToList();
+            List<Course> unAssignedCourses = Allcourses.Except(Assignedcourses).ToList();
+            unAssignedCourses.Insert(0, new Course { CourseId = 0, Name = "Select Course", Credit = "0" });
+            ViewBag.CourseList = unAssignedCourses;
+            ViewBag.StudentId = id;
+
+            var studentcourse = _context.StudentCourses.Where(s => s.StudentId == id).FirstOrDefault();
+            return View(studentcourse);
+        }
+
+        [HttpPost]
+        public ActionResult AddCourse(StudentCourse studentCourse)
+        {
+            if(studentCourse.CourseId == 0)
+            {
+                ModelState.AddModelError("", "Select Course");
+            }
+            int StudentId = studentCourse.Id;
+            if (ModelState.IsValid)
+            {
+                int SelectedCourse = studentCourse.CourseId;
+                
+                var studentCourses = new StudentCourse { CourseId = SelectedCourse, StudentId = StudentId };
+                _context.StudentCourses.Add(studentCourses);
+                _context.SaveChanges();
+                return RedirectToAction("Details", new { id = StudentId });
+            }
+            else
+            {
+                return RedirectToAction("Details", new { id = StudentId });
+            }
+
+
+        }
+
+        public ActionResult DeleteCourse(int id)
+        {
+            StudentCourse studentCourse = _context.StudentCourses.Where(sc => sc.Id == id).FirstOrDefault();
+            int StudentId = studentCourse.StudentId;
+            _context.Attach(studentCourse);
+            _context.Entry(studentCourse).State = EntityState.Deleted;
+            _context.SaveChanges();
+            return RedirectToAction("Details", new { id = StudentId });
         }
     }
 }

@@ -37,14 +37,6 @@
         </dd>
     </dl>
 </div>
-@*<p>Number of Courses Allocated: @Model.StudentCourses.ToList().Count()</p>
-
-    @foreach (var s in Model.StudentCourses.ToList())
-    {
-        var course = context.Courses.Find(s.CourseId);
-        <p>Course Name: @course.Name and Credit: @course.Credit</p>
-
-    }*@
 
 <div class="container p-3">
     <div class="row">
@@ -92,9 +84,6 @@
                         </td>
                         <td class="text-center">
                             <div class="w-75 btn-group" role="group">
-                                @*<a asp-controller="Category" asp-action="Edit" asp-route-Id="@s.Id" class="btn btn-primary btn-sm mx-2">
-                                     Edit
-                                </a>*@
                                 <a asp-controller="Student" asp-action="DeleteCourse" asp-route-Id="@s.Id" class="btn btn-danger btn-sm mx-2">
                                      Delete
                                 </a>
