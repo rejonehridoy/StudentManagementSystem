@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using StudentManagementSystem.Data;
+using StudentManagementSystem.Repository;
+using StudentManagementSystem.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +28,15 @@ namespace StudentManagementSystem
         {
             services.AddControllersWithViews();
             services.AddDbContext<StudentDbContext>();
+            services.AddSession(options => {
+                options.IdleTimeout = TimeSpan.FromMinutes(10);//You can set Time   
+            });
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddTransient<IStudentService, StudentService>();
+            services.AddTransient<ICourseService, CourseService>();
+            services.AddTransient<ILocalizedPropertyService, LocalizedPropertyService>();
+            services.AddTransient<ILanguageService, LanguageService>();
+            services.AddTransient<ITeacherService, TeacherService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +56,7 @@ namespace StudentManagementSystem
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseSession();
 
             app.UseAuthorization();
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentManagementSystem.Data;
 using StudentManagementSystem.Models;
+using StudentManagementSystem.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,26 +13,29 @@ namespace StudentManagementSystem.Controllers
 {
     public class CourseController : Controller
     {
-        private readonly StudentDbContext _context = new StudentDbContext();
+        private readonly ICourseService courseService;
+        private const string SessionLanguageName = "Language";
+        private const string SessionLanguageId = "LanguageId";
 
-        public CourseController(StudentDbContext context)
+        public CourseController(ICourseService courseService)
         {
-            _context = context;
+            this.courseService = courseService;
         }
         // GET: CourseController
         public ActionResult Index(int pg=1)
         {
+            var languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
             const int pageSize = 10;
             if (pg < 1)
             {
                 pg = 1;
             }
-            int recsCount = _context.Courses.Count();
+            int recsCount = courseService.GetCourses().Count();
             var pager = new Pager(recsCount, pg, pageSize);
 
             int recSkip = (pg - 1) * pageSize;
 
-            List<Course> courses = _context.Courses.Skip(recSkip).Take(pager.PageSize).ToList();
+            List<Course> courses = courseService.GetAllLocalCourses(languageId).Skip(recSkip).Take(pager.PageSize).ToList();
             this.ViewBag.Pager = pager;
             this.ViewBag.Controller = "Course";
             return View(courses);
@@ -40,7 +44,8 @@ namespace StudentManagementSystem.Controllers
         // GET: CourseController/Details/5
         public ActionResult Details(int id)
         {
-            Course course = _context.Courses.Where(s => s.CourseId == id).FirstOrDefault();
+            var languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
+            Course course = courseService.GetLocalCourse(id, languageId);
             return View(course);
         }
 
@@ -57,8 +62,7 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                _context.Courses.Add(course);
-                _context.SaveChanges();
+                courseService.InsertCourse(course);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -70,7 +74,7 @@ namespace StudentManagementSystem.Controllers
         // GET: CourseController/Edit/5
         public ActionResult Edit(int id)
         {
-            var course = _context.Courses.Find(id);
+            var course = courseService.GetCourse(id);
             return View(course);
         }
 
@@ -81,9 +85,7 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                _context.Attach(course);
-                _context.Entry(course).State = EntityState.Modified;
-                _context.SaveChanges();
+                courseService.UpdateCourse(course);
                 return RedirectToAction(nameof(Index));
             }
             catch

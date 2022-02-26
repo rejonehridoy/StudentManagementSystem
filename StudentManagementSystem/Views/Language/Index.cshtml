@@ -1,0 +1,44 @@
+﻿@model IEnumerable<StudentManagementSystem.Models.Language>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-sm btn-success">Create New</a>
+</p>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.LanguageId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.LanguageId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                <div class="btn-group">
+                    <a asp-action="Edit" asp-route-id="@item.LanguageId" class="btn btn-sm btn-info">Edit</a> 
+                    <a asp-action="Details" asp-route-id="@item.LanguageId" class="btn btn-sm btn-primary ml-1">Details</a> 
+                    @*<a asp-action="Delete" asp-route-id="@item.LanguageId" class="btn btn-sm btn-danger ml-1">Delete</a>*@
+                </div>
+                
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

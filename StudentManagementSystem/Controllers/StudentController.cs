@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentManagementSystem.Data;
 using StudentManagementSystem.Models;
+using StudentManagementSystem.Services;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,26 +12,32 @@ namespace StudentManagementSystem.Controllers
 {
     public class StudentController : Controller
     {
-        // GET: StudentController
-        private readonly StudentDbContext _context = new StudentDbContext();
+        private readonly IStudentService studentService;
+        private readonly ICourseService courseService;
+        private const string SessionLanguageName = "Language";
+        private const string SessionLanguageId = "LanguageId";
+        
 
-        public StudentController(StudentDbContext context)
+        public StudentController(IStudentService studentService, ICourseService courseService)
         {
-            _context = context;
+            this.studentService = studentService;
+            this.courseService = courseService;
         }
+
         public ActionResult Index(int pg = 1)
         {
+            int languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
             const int pageSize = 10;
             if (pg < 1)
             {
                 pg = 1;
             }
-            int recsCount = _context.Students.Count();
+            int recsCount = studentService.GetStudents().Count();
             var pager = new Pager(recsCount, pg, pageSize);
 
             int recSkip = (pg - 1) * pageSize;
 
-            List<Student> students = _context.Students.Skip(recSkip).Take(pager.PageSize).ToList();
+            List<Student> students = studentService.GetAllLocalStudents(languageId).Skip(recSkip).Take(pager.PageSize).ToList();
             this.ViewBag.Pager = pager;
             this.ViewBag.Controller = "Student";
             return View(students);
@@ -39,10 +46,10 @@ namespace StudentManagementSystem.Controllers
         // GET: StudentController/Details/5
         public ActionResult Details(int id)
         {
-            ViewBag.Context = _context;
-            Student student = _context.Students.Where(s => s.StudentId == id).FirstOrDefault();
-            _context.Entry(student).Collection(c => c.StudentCourses).Query().Where(student => student.StudentId == id).Load();
-
+            int languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
+            ViewBag.CourseService = courseService;
+            ViewBag.LanguageId = languageId;
+            Student student = studentService.GetStudentDataWithCourses(id,languageId);
             return View(student);
         }
 
@@ -59,10 +66,8 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                Debug.WriteLine("New added Studentid: " + student.StudentId);
-                _context.Students.Add(student);
-                _context.SaveChanges();
-                int id = student.StudentId;
+                studentService.InsertStudent(student);
+                int InsertedId = student.StudentId;
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -74,7 +79,7 @@ namespace StudentManagementSystem.Controllers
         // GET: StudentController/Edit/5
         public ActionResult Edit(int id)
         {
-            Student student = _context.Students.Where(s => s.StudentId == id).FirstOrDefault();
+            Student student = studentService.GetStudent(id);
             return View(student);
         }
 
@@ -85,9 +90,7 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                _context.Attach(student);
-                _context.Entry(student).State = EntityState.Modified;
-                _context.SaveChanges();
+                studentService.UpdateStudent(student);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -99,7 +102,8 @@ namespace StudentManagementSystem.Controllers
         // GET: StudentController/Delete/5
         public ActionResult Delete(int id)
         {
-            Student student = _context.Students.Where(s => s.StudentId == id).FirstOrDefault();
+            var languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
+            Student student = studentService.GetLocalStudent(id, languageId);
             return View(student);
         }
 
@@ -110,25 +114,9 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                // Getting all data from StudentCourses table to remove for that specific student
-                int studentId = student.StudentId;
-                var studentcourses = from sc in _context.StudentCourses
-                                     where sc.StudentId == studentId
-                                     select sc;
-
-                // Removing all courses for that student
-                foreach (var sc in studentcourses)
-                {
-                    _context.Entry(sc).State = EntityState.Deleted;
-                }
-                _context.SaveChanges();
-
-
-                //finallly removing student details from Student table
-                _context.Students.Remove(student);
-                _context.SaveChanges();
+                int languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
+                studentService.DeleteStudentWithCourses(student, languageId);
                 return RedirectToAction(nameof(Index));
-
             }
             catch
             {
@@ -140,20 +128,13 @@ namespace StudentManagementSystem.Controllers
         [HttpGet]
         public ActionResult AddCourse(int id)
         {
-            List<Course> Assignedcourses = (from c in _context.Courses
-                                    join sc in _context.StudentCourses on c.CourseId equals sc.CourseId
-                                    join s in _context.Students on sc.StudentId equals s.StudentId
-                                    where sc.StudentId == id
-                                    select c).ToList();
+            List<Course> unAssignedCourses = studentService.GetUnassignedCourses(id);
 
-            List<Course> Allcourses = (from c in _context.Courses select c).ToList();
-            List<Course> unAssignedCourses = Allcourses.Except(Assignedcourses).ToList();
             unAssignedCourses.Insert(0, new Course { CourseId = 0, Name = "Select Course", Credit = "0" });
             ViewBag.CourseList = unAssignedCourses;
             ViewBag.StudentId = id;
 
-            var studentcourse = _context.StudentCourses.Where(s => s.StudentId == id).FirstOrDefault();
-            return View(studentcourse);
+            return View();
         }
 
         [HttpPost]
@@ -168,26 +149,20 @@ namespace StudentManagementSystem.Controllers
             {
                 int SelectedCourse = studentCourse.CourseId;
                 
-                var studentCourses = new StudentCourse { CourseId = SelectedCourse, StudentId = StudentId };
-                _context.StudentCourses.Add(studentCourses);
-                _context.SaveChanges();
+                var NewstudentCourses = new StudentCourse { CourseId = SelectedCourse, StudentId = StudentId };
+                studentService.InsertStudentCourse(NewstudentCourses);
                 return RedirectToAction("Details", new { id = StudentId });
             }
             else
             {
                 return RedirectToAction("Details", new { id = StudentId });
             }
-
-
         }
 
         public ActionResult DeleteCourse(int id)
         {
-            StudentCourse studentCourse = _context.StudentCourses.Where(sc => sc.Id == id).FirstOrDefault();
-            int StudentId = studentCourse.StudentId;
-            _context.Attach(studentCourse);
-            _context.Entry(studentCourse).State = EntityState.Deleted;
-            _context.SaveChanges();
+            int StudentId = studentService.DeleteStudentCourse(id);
+
             return RedirectToAction("Details", new { id = StudentId });
         }
     }

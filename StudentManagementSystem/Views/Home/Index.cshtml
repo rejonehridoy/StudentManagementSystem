@@ -1,8 +1,12 @@
-﻿@{
+﻿@model StudentManagementSystem.Models.Language
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
+
     <h1 class="display-4">Welcome to Student Management System</h1>
+    <h4>Language: <a asp-action="SelectLanguage">@ViewBag.LanguageName</a></h4>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+

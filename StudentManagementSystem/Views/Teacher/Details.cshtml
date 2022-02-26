@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Details";
     var context = ViewBag.Context;
+    var courseService = ViewBag.CourseService;
 }
 
 <h1>Details</h1>
@@ -74,7 +75,8 @@
             <tbody>
                 @foreach (var s in Model.CourseTeachers.ToList())
                 {
-                    var course = context.Courses.Find(s.CourseId);
+                    //var course = context.Courses.Find(s.CourseId);
+                    var course = courseService.GetLocalCourse(s.CourseId, ViewBag.LanguageId);
                     <tr>
                         <td width="50%">
                             @course.Name
