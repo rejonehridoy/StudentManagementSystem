@@ -97,17 +97,20 @@ namespace StudentManagementSystem.Controllers
         // GET: CourseController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            Course course = courseService.GetCourse(id);
+            return View(course);
         }
 
         // POST: CourseController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id,Course course)
         {
             try
             {
+                bool IsDeleted = courseService.DeleteCourse(course.CourseId);
                 return RedirectToAction(nameof(Index));
+                
             }
             catch
             {

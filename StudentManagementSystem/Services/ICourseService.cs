@@ -14,6 +14,6 @@ namespace StudentManagementSystem.Services
         Course GetCourse(int id);
         void InsertCourse(Course course);
         void UpdateCourse(Course course);
-        void DeleteCourse(int id);
+        bool DeleteCourse(int id);
     }
 }
