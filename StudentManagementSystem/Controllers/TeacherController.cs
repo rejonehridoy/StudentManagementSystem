@@ -18,8 +18,6 @@ namespace StudentManagementSystem.Controllers
         private const string SessionLanguageName = "Language";
         private const string SessionLanguageId = "LanguageId";
 
-        private readonly StudentDbContext _context = new StudentDbContext();
-
         public TeacherController(ITeacherService teacherService, ICourseService courseService)
         {
             this.teacherService = teacherService;
@@ -54,10 +52,6 @@ namespace StudentManagementSystem.Controllers
             ViewBag.CourseService = courseService;
             ViewBag.LanguageId = languageId;
             Teacher teacher = teacherService.GetTeacherDataWithCourses(id, languageId);
-
-            //ViewBag.Context = _context;
-            //Teacher teacher = _context.Teachers.Where(s => s.TeacherId == id).FirstOrDefault();
-            //_context.Entry(teacher).Collection(c => c.CourseTeachers).Query().Where(teacher => teacher.TeacherId == id).Load();
             return View(teacher);
         }
 
@@ -74,10 +68,6 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                //_context.Teachers.Add(teacher);
-                //_context.SaveChanges();
-                //int id = teacher.TeacherId;
-
                 teacherService.InsertTeacher(teacher);
                 int InsertedId = teacher.TeacherId;
                 return RedirectToAction(nameof(Index));
@@ -102,9 +92,6 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                //_context.Attach(teacher);
-                //_context.Entry(teacher).State = EntityState.Modified;
-                //_context.SaveChanges();
                 teacherService.UpdateTeacher(teacher);
                 return RedirectToAction(nameof(Index));
             }
@@ -117,7 +104,6 @@ namespace StudentManagementSystem.Controllers
         // GET: TeacherController/Delete/5
         public ActionResult Delete(int id)
         {
-            //Teacher teacher = _context.Teachers.Where(s => s.TeacherId == id).FirstOrDefault();
             var languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
             Teacher teacher = teacherService.GetLocalTeacher(id, languageId);
             return View(teacher);
@@ -130,24 +116,6 @@ namespace StudentManagementSystem.Controllers
         {
             try
             {
-                //// Getting all data from CourseTeacher table to remove for that specific Teacher
-                //int TeacherId = teacher.TeacherId;
-                //var courseTeachers = from ct in _context.CourseTeachers
-                //                     where ct.TeacherId == TeacherId
-                //                     select ct;
-
-                //// Removing all courses for that student
-                //foreach (var ct in courseTeachers)
-                //{
-                //    _context.Entry(ct).State = EntityState.Deleted;
-                //}
-                //_context.SaveChanges();
-
-
-                ////finallly removing student details from Student table
-                //_context.Teachers.Remove(teacher);
-                //_context.SaveChanges();
-
                 int languageId = HttpContext.Session.GetInt32(SessionLanguageId).Value;
                 teacherService.DeleteTeacherWithCourses(teacher, languageId);
                 return RedirectToAction(nameof(Index));
@@ -161,21 +129,6 @@ namespace StudentManagementSystem.Controllers
         [HttpGet]
         public ActionResult AddCourse(int id)
         {
-            //List<Course> Assignedcourses = (from c in _context.Courses
-            //                                join ct in _context.CourseTeachers on c.CourseId equals ct.CourseId
-            //                                join t in _context.Teachers on ct.TeacherId equals t.TeacherId
-            //                                where ct.TeacherId == id
-            //                                select c).ToList();
-
-            //List<Course> Allcourses = (from c in _context.Courses select c).ToList();
-            //List<Course> unAssignedCourses = Allcourses.Except(Assignedcourses).ToList();
-            //unAssignedCourses.Insert(0, new Course { CourseId = 0, Name = "Select Course", Credit = "0" });
-            //ViewBag.CourseList = unAssignedCourses;
-            //ViewBag.TeacherId = id;
-
-            //var courseteacher = _context.CourseTeachers.Where(t => t.TeacherId == id).FirstOrDefault();
-
-
             List<Course> unAssignedCourses = teacherService.GetUnassignedCourses(id);
 
             unAssignedCourses.Insert(0, new Course { CourseId = 0, Name = "Select Course", Credit = "0" });
@@ -194,11 +147,6 @@ namespace StudentManagementSystem.Controllers
             int TeacherId = courseTeacher.Id;
             if (ModelState.IsValid)
             {
-                //int SelectedCourseId = courseTeacher.CourseId;
-
-                //var NewcourseTeacher = new CourseTeacher { CourseId = SelectedCourseId, TeacherId = TeacherId };
-                //_context.CourseTeachers.Add(NewcourseTeacher);
-                //_context.SaveChanges();
 
                 int SelectedCourse = courseTeacher.CourseId;
 
@@ -214,12 +162,6 @@ namespace StudentManagementSystem.Controllers
 
         public ActionResult DeleteCourse(int id)
         {
-            //CourseTeacher courseTeacher = _context.CourseTeachers.Where(ct => ct.Id == id).FirstOrDefault();
-            //int TeacherId = courseTeacher.TeacherId;
-            //_context.Attach(courseTeacher);
-            //_context.Entry(courseTeacher).State = EntityState.Deleted;
-            //_context.SaveChanges();
-
             int TeacherId = teacherService.DeleteTeacherCourse(id);
             return RedirectToAction("Details", new { id = TeacherId });
         }
